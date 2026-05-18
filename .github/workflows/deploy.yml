@@ -1,0 +1,37 @@
+name: Deploy MoeMail to Cloudflare
+
+on:
+  push:
+    branches:
+      - main  # 当你向 main 分支推送代码时自动触发
+  workflow_dispatch: # 允许在 GitHub Actions 页面手动点击触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出你的项目代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 安装并设置 Node.js 环境（MoeMail 需要 Node.js 18+）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm' # 启用 pnpm 缓存，加快安装速度
+
+      # 3. 安装 pnpm 包管理器
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # 4. 安装项目依赖
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5. 使用 Wrangler 部署到 Cloudflare Pages
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy .next --project-name=moemail
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
